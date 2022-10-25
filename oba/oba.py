@@ -67,4 +67,10 @@ class Obj:
 
     def __iter__(self):
         obj = Obj.raw(self)
-        return iter(obj)
+        for item in obj:
+            if Obj.iterable(item):
+                item = Obj(item)
+            yield item
+
+    def __len__(self):
+        return len(Obj.raw(self))
