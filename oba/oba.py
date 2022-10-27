@@ -1,6 +1,13 @@
 class NoneObj:
     __obj = dict()
 
+    @staticmethod
+    def raw(o: 'NoneObj'):
+        return object.__getattribute__(o, '__path')
+
+    def __init__(self, path=''):
+        object.__setattr__(self, '__path', path)
+
     def __iter__(self):
         return iter(NoneObj.__obj)
 
@@ -8,10 +15,11 @@ class NoneObj:
         return False
 
     def __getitem__(self, item):
-        return self
+        p = NoneObj.raw(self)
+        return NoneObj(f'{p}.{item}')
 
     def __getattr__(self, item):
-        return self
+        return self[item]
 
     def __setattr__(self, key, value):
         return
@@ -20,7 +28,7 @@ class NoneObj:
         return False
 
     def __str__(self):
-        raise ValueError('NoneObj')
+        raise ValueError(f'NoneObj ({NoneObj.raw(self)})')
     
     
 class Obj:
@@ -74,3 +82,9 @@ class Obj:
 
     def __len__(self):
         return len(Obj.raw(self))
+
+
+if __name__ == '__main__':
+    o = Obj({'m': 5})
+    print(o.m)
+    print(o.a.b[0].x)
