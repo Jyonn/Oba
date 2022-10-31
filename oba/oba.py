@@ -32,8 +32,6 @@ class NoneObj:
     
     
 class Obj:
-    none = NoneObj()
-
     @staticmethod
     def iterable(obj):
         types = [list, dict, tuple]
@@ -44,7 +42,9 @@ class Obj:
 
     @staticmethod
     def raw(o: 'Obj'):
-        return object.__getattribute__(o, '__obj')
+        if isinstance(o, Obj):
+            return object.__getattribute__(o, '__obj')
+        return o
 
     def __init__(self, obj):
         object.__setattr__(self, '__obj', obj)
@@ -54,7 +54,7 @@ class Obj:
         try:
             obj = obj.__getitem__(item)
         except Exception:
-            return Obj.none
+            return NoneObj(f'{item}')
         if Obj.iterable(obj):
             return Obj(obj)
         return obj
