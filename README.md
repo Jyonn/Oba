@@ -1,5 +1,8 @@
 # Oba
 
+![PyPI](https://img.shields.io/pypi/v/oba.svg)
+![GitHub](https://img.shields.io/github/license/Jyonn/Oba.svg)
+
 ## Usage
 
 - Convert iterative object to attribute-accessible object
