@@ -1,3 +1,6 @@
+from collections.abc import Iterable
+
+
 class NoneObj:
     __obj = dict()
 
@@ -28,17 +31,13 @@ class NoneObj:
         return False
 
     def __str__(self):
-        raise ValueError(f'NoneObj ({NoneObj.raw(self)})')
+        raise ValueError(f'Path {NoneObj.raw(self)} not exists')
     
     
 class Obj:
     @staticmethod
     def iterable(obj):
-        types = [list, dict, tuple]
-        for t in types:
-            if isinstance(obj, t):
-                return True
-        return False
+        return isinstance(obj, Iterable)
 
     @staticmethod
     def raw(o: 'Obj'):
@@ -46,25 +45,36 @@ class Obj:
             return object.__getattribute__(o, '__obj')
         return o
 
-    def __init__(self, obj):
+    def __init__(self, obj=None):
+        if obj is None:
+            obj = {}
+        assert Obj.iterable(obj), TypeError('Obj input should be iterable')
         object.__setattr__(self, '__obj', obj)
 
     def __getitem__(self, item):
+        item = item.split('.', maxsplit=1)
+
         obj = Obj.raw(self)
         try:
-            obj = obj.__getitem__(item)
+            obj = obj.__getitem__(item[0])
         except Exception:
-            return NoneObj(f'{item}')
+            return NoneObj(f'{item[0]}')
         if Obj.iterable(obj):
-            return Obj(obj)
+            obj = Obj(obj)
+        if len(item) > 1:
+            obj = obj[item[1]]
         return obj
 
-    def __getattr__(self, item):
+    def __getattr__(self, item: str):
         return self[item]
 
-    def __setitem__(self, key, value):
-        obj = Obj.raw(self)
-        obj[key] = value
+    def __setitem__(self, key: str, value):
+        key = key.split('.', maxsplit=1)
+        if len(key) == 1:
+            obj = Obj.raw(self)
+            obj[key[0]] = value
+        else:
+            self[key[0]][key[1]] = value
 
     def __setattr__(self, key, value):
         self[key] = value
@@ -85,6 +95,5 @@ class Obj:
 
 
 if __name__ == '__main__':
-    o = Obj({'m': 5})
-    print(o.m)
-    print(o.a.b[0].x)
+    o = Obj({'a': {'b': {'c': {'d': 1}}}})
+    print(o['a']['b.c']['e.f.g'])
