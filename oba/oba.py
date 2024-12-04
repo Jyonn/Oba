@@ -37,7 +37,7 @@ class NoneObj:
 class Obj:
     @staticmethod
     def iterable(obj):
-        return isinstance(obj, Iterable)
+        return isinstance(obj, Iterable) and not isinstance(obj, str)
 
     @staticmethod
     def raw(o: 'Obj'):
