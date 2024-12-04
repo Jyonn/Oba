@@ -52,16 +52,20 @@ class Obj:
         object.__setattr__(self, '__obj', obj)
 
     def __getitem__(self, item):
-        item = item.split('.', maxsplit=1)
+        if isinstance(item, str):
+            item = item.split('.', maxsplit=1)
+            indexer = item[0]
+        else:
+            indexer = item
 
         obj = Obj.raw(self)
         try:
-            obj = obj.__getitem__(item[0])
+            obj = obj.__getitem__(indexer)
         except Exception:
-            return NoneObj(f'{item[0]}')
+            return NoneObj(f'{indexer}')
         if Obj.iterable(obj):
             obj = Obj(obj)
-        if len(item) > 1:
+        if isinstance(item, list) and len(item) > 1:
             obj = obj[item[1]]
         return obj
 
