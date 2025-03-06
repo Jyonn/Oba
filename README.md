@@ -26,13 +26,13 @@ print(o.c.l)  # => hello
 
 # Set values
 o.b[1].x = 4
-print(Obj.raw(o.b[1]))  # => {'x': 4}
+print(o.b[1]())  # => {'x': 4}
 
 points = [dict(x=1, y=2), dict(x=-1, y=0), dict(x=0, y=1)]
 o = Obj(points)
 
 o[0].x += 1
-print(Obj.raw(o[0]))  # => {'x': 2, 'y': 2}
+print(o[0]())  # => {'x': 2, 'y': 2}
 
 o['c.l'] = 'world'
 print(o.c.l)  # => world
