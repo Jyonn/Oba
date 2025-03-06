@@ -1,4 +1,4 @@
-from collections.abc import Iterable
+from collections.abc import Mapping
 
 
 class NoneObj:
@@ -21,11 +21,14 @@ class NoneObj:
         p = NoneObj.raw(self)
         return NoneObj(f'{p}.{item}')
 
+    def __setitem__(self, key, value):
+        pass
+
     def __getattr__(self, item):
         return self[item]
 
     def __setattr__(self, key, value):
-        return
+        pass
 
     def __bool__(self):
         return False
@@ -37,7 +40,7 @@ class NoneObj:
 class Obj:
     @staticmethod
     def iterable(obj):
-        return isinstance(obj, Iterable) and not isinstance(obj, str)
+        return isinstance(obj, Mapping)
 
     @staticmethod
     def raw(o: 'Obj'):
@@ -48,7 +51,8 @@ class Obj:
     def __init__(self, obj=None):
         if obj is None:
             obj = {}
-        assert Obj.iterable(obj), TypeError('Obj input should be iterable')
+        if not Obj.iterable(obj):
+            raise TypeError('Obj input should be iterable')
         object.__setattr__(self, '__obj', obj)
 
     def __getitem__(self, item):
@@ -62,7 +66,7 @@ class Obj:
         try:
             obj = obj.__getitem__(indexer)
         except Exception:
-            return NoneObj(f'{indexer}')
+            return NoneObj(indexer)
         if Obj.iterable(obj):
             obj = Obj(obj)
         if isinstance(item, list) and len(item) > 1:
@@ -96,6 +100,9 @@ class Obj:
 
     def __len__(self):
         return len(Obj.raw(self))
+
+    def __call__(self):
+        return Obj.raw(self)
 
 
 if __name__ == '__main__':
