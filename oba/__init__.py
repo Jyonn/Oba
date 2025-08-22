@@ -1,3 +1,6 @@
-from oba.oba import NoneObj, Obj
+from oba.oba import NotFound, Obj
+from oba.path import Path
 
-__all__ = [NoneObj, Obj]
+
+__all__ = [NotFound, Obj, Path]
+
