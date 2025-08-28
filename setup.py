@@ -6,7 +6,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name='oba',
-    version='0.2.0',
+    version='0.2.1',
     keywords=['dict', 'object'],
     description='make iter object easy to access (item to attr)',
     long_description=long_description,
