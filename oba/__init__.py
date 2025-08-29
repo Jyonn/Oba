@@ -1,6 +1,15 @@
 from oba.oba import NotFound, Obj
 from oba.path import Path
-from oba.dot import DotObj
+from oba.soba import Soba
 
 
-__all__ = [NotFound, Obj, Path, DotObj]
+def obj(object_):
+    return Obj(object_)
+
+
+def soba(object_, separator='.'):
+    return Soba(object_, separator=separator)
+
+
+__all__ = [NotFound, Obj, Path, Soba, obj, soba]
+__version__ = '0.3.0'

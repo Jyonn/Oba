@@ -4,53 +4,49 @@ import warnings
 from oba.path import Path
 
 
-def raw(obj: 'BaseObj'):
-    if isinstance(obj, NotFound):
-        return object.__getattribute__(obj, '__path')()
-    if isinstance(obj, Obj):
-        return object.__getattribute__(obj, '__obj')
-    return obj
+def raw(object_: 'BaseObj'):
+    if isinstance(object_, NotFound):
+        return object.__getattribute__(object_, '__path__')()
+    if isinstance(object_, Obj):
+        return object.__getattribute__(object_, '__obj__')
+    return object_
 
 
-def _get_path(obj: 'BaseObj') -> Path:
-    return object.__getattribute__(obj, '__path')
+def iterable(object_) -> bool:
+    return isinstance(object_, dict) or isinstance(object_, list) or isinstance(object_, tuple)
 
 
-def iterable(obj) -> bool:
-    return isinstance(obj, dict) or isinstance(obj, list) or isinstance(obj, tuple)
+def is_dict(object_: 'BaseObj') -> bool:
+    return isinstance(object_, Obj) and isinstance(raw(object_), dict)
 
 
-def is_dict(obj: 'BaseObj') -> bool:
-    return isinstance(obj, Obj) and isinstance(raw(obj), dict)
+def is_list(object_: 'BaseObj') -> bool:
+    return isinstance(object_, Obj) and isinstance(raw(object_), list)
 
 
-def is_list(obj: 'BaseObj') -> bool:
-    return isinstance(obj, Obj) and isinstance(raw(obj), list)
-
-
-def is_tuple(obj: 'BaseObj') -> bool:
-    return isinstance(obj, Obj) and isinstance(raw(obj), tuple)
+def is_tuple(object_: 'BaseObj') -> bool:
+    return isinstance(object_, Obj) and isinstance(raw(object_), tuple)
 
 
 class BaseObj(abc.ABC):
-    def __init__(self, obj=None, path=None):
-        object.__setattr__(self, '__path', path or Path())
-        object.__setattr__(self, '__obj', obj if obj is not None else {})
+    def __init__(self, object_=None, path=None):
+        object.__setattr__(self, '__path__', path or Path())
+        object.__setattr__(self, '__obj__', object_ if object_ is not None else {})
 
     def __iter__(self):
         raise NotImplementedError
 
     @classmethod
-    def raw(cls, obj: 'BaseObj'):
+    def raw(cls, object_: 'BaseObj'):
         warnings.warn(
             'Obj.raw is deprecated, use oba.raw instead', DeprecationWarning, stacklevel=2)
-        return raw(obj)
+        return raw(object_)
 
     @classmethod
-    def iterable(cls, obj):
+    def iterable(cls, object_):
         warnings.warn(
             'Obj.iterable is deprecated, use oba.iterable instead', DeprecationWarning, stacklevel=2)
-        return iterable(obj)
+        return iterable(object_)
 
     def __contains__(self, item):
         raise NotImplementedError
@@ -84,8 +80,8 @@ class BaseObj(abc.ABC):
 
 
 class NotFound(BaseObj):
-    def __init__(self, obj=None, path=None):
-        super().__init__(obj, path)
+    def __init__(self, object_=None, path=None):
+        super().__init__(object_, path)
 
         if not isinstance(path, Path):
             raise ValueError('path for NotFound class should be a Path object')
@@ -102,7 +98,7 @@ class NotFound(BaseObj):
         return False
 
     def __getitem__(self, key):
-        return NotFound(path=_get_path(self) / key)
+        return NotFound(path=self.__path__ / key)
 
     def __setitem__(self, key, value):
         pass
@@ -123,8 +119,7 @@ class NotFound(BaseObj):
         return False
 
     def __str__(self):
-        path = _get_path(self)
-        raise ValueError(f'Path not exists: {path}')
+        raise ValueError(f'Path not exists: {self.__path__}')
 
     def __len__(self):
         return 0
@@ -134,21 +129,20 @@ NoneObj = NotFound
 
 
 class Obj(BaseObj):
-    def __init__(self, obj=None, path=None):
-        super().__init__(obj, path)
+    def __init__(self, object_=None, path=None):
+        super().__init__(object_, path)
 
-        if not iterable(obj):
+        if not iterable(object_):
             raise TypeError('obj should be iterable (dict, list, or tuple)')
 
     def __getitem__(self, key):
-        obj = raw(self)
         # noinspection PyBroadException
         try:
-            value = obj.__getitem__(key)
+            value = self.__obj__.__getitem__(key)
         except Exception:
-            return NotFound(path=_get_path(self) / key)
+            return NotFound(path=self.__path__ / key)
         if iterable(value):
-            value = Obj(value, path=_get_path(self) / str(key))
+            value = Obj(value, path=self.__path__ / str(key))
         return value
 
     def __getattr__(self, key: str):
@@ -157,41 +151,33 @@ class Obj(BaseObj):
     def __setitem__(self, key: str, value):
         if not is_dict(self):
             raise TypeError('__setitem__ and __setattr__ can only be used on a dict-like object')
-        obj = raw(self)
-        obj[key] = value
+        self.__obj__[key] = value
 
     def __setattr__(self, key, value):
         self[key] = value
 
     def __contains__(self, item):
-        obj = raw(self)
-        return item in obj
+        return item in self.__obj__
 
     def __iter__(self):
-        obj = raw(self)
-        if isinstance(obj, dict):
-            for key in obj:
+        if isinstance(self.__obj__, dict):
+            for key in self.__obj__:
                 yield key
         else:
-            for i, item in enumerate(obj):
+            for i, item in enumerate(self.__obj__):
                 if iterable(item):
-                    yield Obj(item, path=_get_path(self) / str(i))
+                    yield Obj(item, path=self.__path__ / str(i))
                 else:
                     yield item
 
     def __len__(self):
-        return len(raw(self))
+        return len(self.__obj__)
 
     def __call__(self):
-        return raw(self)
+        return self.__obj__
 
     def __bool__(self):
-        return bool(raw(self))
+        return bool(self.__obj__)
 
     def __str__(self):
         return 'Obj()'
-
-
-if __name__ == '__main__':
-    o = Obj({'a': {'b': {'c': {'d': 1}}}})
-    print(o['a'].b.c['e·f·g'])
