@@ -1,4 +1,4 @@
-from oba.oba import NotFound, Obj
+from oba.oba import NotFound, Obj, raw, iterable, is_dict, is_list, is_tuple, BaseObj
 from oba.path import Path
 from oba.soba import Soba
 
@@ -11,5 +11,5 @@ def soba(object_, separator='.'):
     return Soba(object_, separator=separator)
 
 
-__all__ = [NotFound, Obj, Path, Soba, obj, soba]
-__version__ = '0.3.0'
+__all__ = [BaseObj, NotFound, Obj, Path, Soba, obj, soba, raw, iterable, is_dict, is_list, is_tuple]
+__version__ = '0.3.1'
